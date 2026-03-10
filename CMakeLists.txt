@@ -68,3 +68,7 @@ add_executable(test_scrypt src/tests/test_scrypt.cpp src/core/scrypt.cpp)
 target_include_directories(test_scrypt PRIVATE src)
 target_link_libraries(test_scrypt PRIVATE OpenSSL::Crypto)
 add_test(NAME TestScrypt COMMAND test_scrypt)
+
+# Pro Features
+file(GLOB PRO_SOURCES "src/core/pool_manager.cpp")
+target_sources(AIMiner PRIVATE ${PRO_SOURCES})

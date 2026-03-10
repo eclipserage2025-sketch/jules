@@ -8,7 +8,7 @@
 namespace ai {
 
 /**
- * @brief Simple AI Learning architecture for performance and network difficulty optimization
+ * @brief Simple AI Learning architecture for performance, difficulty, and profitability
  */
 class LearningEngine {
 public:
@@ -28,9 +28,20 @@ public:
     void updateTuningProgress(float hashrate);
     TuningState getTuningState() const { return tuning_state; }
 
-    // Network Difficulty Tracking
+    // Network Difficulty & Profitability
     void addDifficultyDataPoint(double difficulty);
     double predictNextDifficulty();
+
+    struct Profitability {
+        std::string coin;
+        double score; // Combined price/difficulty score
+    };
+    void updateCoinProfitability(const std::string& coin, double difficulty, double price);
+    std::string getMostProfitableCoin();
+
+    // Hardware Maintenance
+    void updateHardwareHealth(float temp, float fan_speed);
+    bool isInstabilityPredicted() const { return hardware_risk_alert; }
 
     // Model I/O
     bool loadModel(const std::string& model_path);
@@ -51,8 +62,9 @@ private:
 
     std::vector<DataPoint> history;
     std::vector<DifficultyPoint> diff_history;
+    std::map<std::string, double> coin_profitability_map;
 
-    // Auto-Tuning Internal State
+    // AI state
     TuningState tuning_state = TuningState::Idle;
     float current_probe_intensity = 1.0f;
     int current_probe_threads = 1;
@@ -60,7 +72,9 @@ private:
     const int max_probes = 10;
     std::chrono::steady_clock::time_point last_probe_time;
 
-    double calculateDifficultyTrend();
+    // Maintenance state
+    bool hardware_risk_alert = false;
+    std::vector<float> temp_history;
 };
 
 } // namespace ai

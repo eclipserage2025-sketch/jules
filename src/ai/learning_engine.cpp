@@ -6,13 +6,12 @@
 
 namespace ai {
 
-LearningEngine::LearningEngine() : tuning_state(TuningState::Idle) {}
+LearningEngine::LearningEngine() : tuning_state(TuningState::Idle), hardware_risk_alert(false) {}
 LearningEngine::~LearningEngine() {}
 
 void LearningEngine::addDataPoint(float intensity, int threads, float hashrate, float temp) {
     history.push_back({intensity, threads, hashrate, temp, std::chrono::steady_clock::now()});
     if (history.size() > 1000) history.erase(history.begin());
-    std::cout << "[AI] Performance point: Intensity=" << intensity << ", Hashrate=" << hashrate << std::endl;
 }
 
 void LearningEngine::addDifficultyDataPoint(double difficulty) {
@@ -34,12 +33,49 @@ double LearningEngine::predictNextDifficulty() {
     return std::max(1.0, slope * (double)n + intercept);
 }
 
+void LearningEngine::updateCoinProfitability(const std::string& coin, double difficulty, double price) {
+    // Profitability Score = Price / Difficulty (Simplified)
+    double score = price / (difficulty + 0.001);
+    coin_profitability_map[coin] = score;
+    std::cout << "[AI] Updated profitability for " << coin << ": " << score << std::endl;
+}
+
+std::string LearningEngine::getMostProfitableCoin() {
+    std::string best_coin = "LTC";
+    double best_score = -1.0;
+    for (auto const& [coin, score] : coin_profitability_map) {
+        if (score > best_score) {
+            best_score = score;
+            best_coin = coin;
+        }
+    }
+    return best_coin;
+}
+
+void LearningEngine::updateHardwareHealth(float temp, float fan_speed) {
+    temp_history.push_back(temp);
+    if (temp_history.size() > 50) temp_history.erase(temp_history.begin());
+
+    // Predictive Maintenance: Check for upward thermal drift (rising temp with constant fan)
+    if (temp_history.size() >= 10) {
+        float recent_avg = std::accumulate(temp_history.end() - 5, temp_history.end(), 0.0f) / 5.0f;
+        float older_avg = std::accumulate(temp_history.begin(), temp_history.begin() + 5, 0.0f) / 5.0f;
+
+        if (recent_avg > older_avg + 5.0f && fan_speed > 80.0f) {
+            hardware_risk_alert = true;
+            std::cout << "[AI] ALERT: Thermal drift detected! Throttling hardware..." << std::endl;
+        } else if (temp < 60.0f) {
+            hardware_risk_alert = false;
+        }
+    }
+}
+
 void LearningEngine::predictOptimalSettings(float target_temp, float current_difficulty, float& optimal_intensity, int& optimal_threads) {
     double predicted_diff = predictNextDifficulty();
-    bool prioritize_efficiency = (predicted_diff > current_difficulty * 1.05);
+    bool prioritize_efficiency = (predicted_diff > current_difficulty * 1.05) || hardware_risk_alert;
 
     if (history.empty()) {
-        optimal_intensity = prioritize_efficiency ? 6.0f : 8.0f;
+        optimal_intensity = prioritize_efficiency ? 5.0f : 8.0f;
         optimal_threads = 4;
         return;
     }
@@ -47,7 +83,7 @@ void LearningEngine::predictOptimalSettings(float target_temp, float current_dif
     float max_metric = -1.0f;
     const DataPoint* best_match = nullptr;
     for (const auto& dp : history) {
-        if (dp.temperature <= target_temp) {
+        if (dp.temperature <= (hardware_risk_alert ? 65.0f : target_temp)) {
             float metric = dp.hashrate / (prioritize_efficiency ? (dp.intensity + 1.0f) : 1.0f);
             if (metric > max_metric) {
                 max_metric = metric;
@@ -65,9 +101,7 @@ void LearningEngine::predictOptimalSettings(float target_temp, float current_dif
     }
 }
 
-// Active Auto-Tuning Implementation
 void LearningEngine::startAutoTuning() {
-    std::cout << "[AI] Auto-Tuning phase started..." << std::endl;
     tuning_state = TuningState::Probing;
     probe_count = 0;
     current_probe_intensity = 1.0f;
@@ -82,22 +116,15 @@ void LearningEngine::getNextTuningProbe(float& intensity, int& threads) {
 
 void LearningEngine::updateTuningProgress(float hashrate) {
     if (tuning_state != TuningState::Probing) return;
-
     auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration_cast<std::chrono::seconds>(now - last_probe_time).count() < 10) {
-        // Wait for stabilization
         tuning_state = TuningState::Stabilizing;
         return;
     }
-
-    // Record the probe result (using placeholder temperature)
     addDataPoint(current_probe_intensity, current_probe_threads, hashrate, 55.0f);
-
-    // Cycle to next configuration
     probe_count++;
     if (probe_count >= max_probes) {
         tuning_state = TuningState::Idle;
-        std::cout << "[AI] Auto-Tuning phase complete. Optimized settings applied." << std::endl;
     } else {
         current_probe_intensity += 2.0f;
         current_probe_threads = (current_probe_threads % 8) + 1;
@@ -106,8 +133,6 @@ void LearningEngine::updateTuningProgress(float hashrate) {
     }
 }
 
-bool LearningEngine::loadModel(const std::string& model_path) {
-    return true;
-}
+bool LearningEngine::loadModel(const std::string& model_path) { return true; }
 
 } // namespace ai
