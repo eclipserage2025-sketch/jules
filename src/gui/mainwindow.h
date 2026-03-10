@@ -10,10 +10,12 @@
 #include <QProgressBar>
 #include <QFormLayout>
 #include <QTableWidget>
+#include <QCheckBox>
 #include <memory>
 #include "core/worker.h"
 #include "core/pool_manager.h"
 #include "core/stratum_client.h"
+#include "core/telemetry_server.h"
 #include "ai/learning_engine.h"
 
 namespace gui {
@@ -30,9 +32,9 @@ private slots:
     void onAutoTuneClicked();
     void updateStats();
     void runAI();
+    void toggleWebDashboard(bool checked);
 
 private:
-    // UI elements
     QLabel* hashrateLabel;
     QLabel* tempLabel;
     QLabel* difficultyLabel;
@@ -40,27 +42,33 @@ private:
     QLabel* profitLabel;
     QLabel* statusLabel;
     QLabel* healthLabel;
+    QLabel* nnLabel; // Neural Net status
+    QLabel* webUrlLabel;
+
     QPushButton* startBtn;
     QPushButton* stopBtn;
     QPushButton* tuneBtn;
+    QCheckBox* webToggle;
+
     QProgressBar* loadBar;
     QProgressBar* tuneBar;
     QTableWidget* poolTable;
 
-    // Core Logic
     std::vector<std::unique_ptr<core::Worker>> workers;
     std::unique_ptr<ai::LearningEngine> aiEngine;
     std::unique_ptr<core::PoolManager> poolManager;
     std::unique_ptr<core::StratumClient> stratum;
+    std::unique_ptr<core::TelemetryServer> webServer;
 
     QTimer* statsTimer;
     QTimer* aiTimer;
 
-    // Simulation
     float currentHashrate = 0.0f;
     float currentTemp = 45.0f;
     double currentDifficulty = 1.0;
     std::string currentCoin = "LTC";
+
+    QString generateStatsJson();
 };
 
 } // namespace gui

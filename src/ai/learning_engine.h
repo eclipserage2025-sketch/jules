@@ -7,12 +7,10 @@
 #include <memory>
 #include <chrono>
 #include <mutex>
+#include "neural_net.h"
 
 namespace ai {
 
-/**
- * @brief Thread-safe AI Learning Engine for performance optimization and maintenance.
- */
 class LearningEngine {
 public:
     enum class TuningState { Idle, Probing, Stabilizing, Analyzed };
@@ -20,24 +18,23 @@ public:
     LearningEngine();
     ~LearningEngine();
 
-    // Performance Data
     void addDataPoint(float intensity, int threads, float hashrate, float temp);
     void predictOptimalSettings(float target_temp, float current_difficulty, float& optimal_intensity, int& optimal_threads);
 
-    // Auto-Tuning
+    // Neural Net Prediction
+    float neuralPredictHashrate(float intensity, int threads);
+
     void startAutoTuning();
     bool isTuning() const;
     void getNextTuningProbe(float& intensity, int& threads) const;
     void updateTuningProgress(float hashrate);
     TuningState getTuningState() const;
 
-    // Intelligence
     void addDifficultyDataPoint(double difficulty);
     double predictNextDifficulty();
     void updateCoinProfitability(const std::string& coin, double difficulty, double price);
     std::string getMostProfitableCoin();
 
-    // Health
     void updateHardwareHealth(float temp, float fan_speed);
     bool isInstabilityPredicted() const;
 
@@ -57,16 +54,16 @@ private:
         std::chrono::system_clock::time_point timestamp;
     };
 
-    // Thread Safety
     mutable std::mutex data_mutex;
-
-    // History
     std::vector<DataPoint> history;
     std::vector<DifficultyPoint> diff_history;
     std::map<std::string, double> coin_profitability_map;
     std::vector<float> temp_history;
 
-    // State
+    // Advanced AI components
+    std::unique_ptr<NeuralNet> performanceNet;
+    void trainNet();
+
     TuningState tuning_state = TuningState::Idle;
     float current_probe_intensity = 1.0f;
     int current_probe_threads = 1;
@@ -78,4 +75,4 @@ private:
 
 } // namespace ai
 
-#endif // AI_LEARNING_ENGINE_H
+#endif

@@ -72,3 +72,7 @@ add_test(NAME TestScrypt COMMAND test_scrypt)
 # Pro Features
 file(GLOB PRO_SOURCES "src/core/pool_manager.cpp")
 target_sources(AIMiner PRIVATE ${PRO_SOURCES})
+
+# Ultimate Edition Features
+file(GLOB ULTIMATE_SOURCES "src/ai/neural_net.cpp" "src/core/telemetry_server.cpp" "src/ai/onnx_integration.cpp" "src/core/mining_engine.cpp")
+target_sources(AIMiner PRIVATE ${ULTIMATE_SOURCES})
