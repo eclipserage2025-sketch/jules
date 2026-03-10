@@ -1,13 +1,16 @@
-#pragma once
+#ifndef CORE_STRATUM_CLIENT_H
+#define CORE_STRATUM_CLIENT_H
+
 #include <string>
 #include <vector>
 #include <functional>
 #include <curl/curl.h>
+#include <mutex>
 
 namespace core {
 
 /**
- * @brief Stratum client with failover and intelligence tracking
+ * @brief Thread-safe Stratum client with network intelligence tracking.
  */
 class StratumClient {
 public:
@@ -21,7 +24,6 @@ public:
     bool authorize();
     bool submit(const std::string& job_id, const std::string& extranonce2, const std::string& ntime, const std::string& nonce);
 
-    // Callbacks
     void setDifficultyCallback(std::function<void(double)> callback);
     void setTargetCoinCallback(std::function<void(const std::string&)> callback);
 
@@ -30,6 +32,8 @@ private:
     std::string current_host;
     int current_port;
     CURL* curl;
+
+    std::mutex client_mutex;
     std::function<void(double)> diff_callback;
     std::function<void(const std::string&)> coin_callback;
 
@@ -38,3 +42,5 @@ private:
 };
 
 } // namespace core
+
+#endif // CORE_STRATUM_CLIENT_H

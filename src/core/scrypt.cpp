@@ -5,18 +5,15 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 namespace core {
 
-/**
- * @brief Salsa20/8 core function used by Scrypt
- */
 void Scrypt::salsa20_8(uint32_t* B) {
     uint32_t x[16];
     std::memcpy(x, B, 64);
 
     for (int i = 8; i > 0; i -= 2) {
-        // Column rounds
         x[ 4] ^= rotate_left(x[ 0] + x[12], 7);
         x[ 8] ^= rotate_left(x[ 4] + x[ 0], 9);
         x[12] ^= rotate_left(x[ 8] + x[ 4], 13);
@@ -37,7 +34,6 @@ void Scrypt::salsa20_8(uint32_t* B) {
         x[11] ^= rotate_left(x[ 7] + x[ 3], 13);
         x[15] ^= rotate_left(x[11] + x[ 7], 18);
 
-        // Row rounds
         x[ 1] ^= rotate_left(x[ 0] + x[ 3], 7);
         x[ 2] ^= rotate_left(x[ 1] + x[ 0], 9);
         x[ 3] ^= rotate_left(x[ 2] + x[ 1], 13);
@@ -59,41 +55,35 @@ void Scrypt::salsa20_8(uint32_t* B) {
         x[15] ^= rotate_left(x[14] + x[13], 18);
     }
 
-    for (int i = 0; i < 16; i++) {
-        B[i] += x[i];
-    }
+    for (int i = 0; i < 16; ++i) B[i] += x[i];
 }
 
 void Scrypt::scrypt_blockmix(uint8_t* B, uint32_t r) {
     uint8_t X[64];
     std::memcpy(X, &B[(2 * r - 1) * 64], 64);
 
-    std::vector<uint8_t> Y(128 * r);
-    for (uint32_t i = 0; i < 2 * r; i++) {
-        for (uint32_t j = 0; j < 64; j++) {
-            X[j] ^= B[i * 64 + j];
-        }
+    std::unique_ptr<uint8_t[]> Y = std::make_unique<uint8_t[]>(128 * r);
+    for (uint32_t i = 0; i < 2 * r; ++i) {
+        for (uint32_t j = 0; j < 64; ++j) X[j] ^= B[i * 64 + j];
         salsa20_8(reinterpret_cast<uint32_t*>(X));
         std::memcpy(&Y[i * 64], X, 64);
     }
 
-    for (uint32_t i = 0; i < r; i++) {
+    for (uint32_t i = 0; i < r; ++i) {
         std::memcpy(&B[i * 64], &Y[(i * 2) * 64], 64);
         std::memcpy(&B[(i + r) * 64], &Y[(i * 2 + 1) * 64], 64);
     }
 }
 
 void Scrypt::scrypt_romix(uint8_t* B, uint32_t r, uint32_t N, uint8_t* V) {
-    uint32_t block_len = 128 * r;
-    for (uint32_t i = 0; i < N; i++) {
+    const uint32_t block_len = 128 * r;
+    for (uint32_t i = 0; i < N; ++i) {
         std::memcpy(&V[i * block_len], B, block_len);
         scrypt_blockmix(B, r);
     }
-    for (uint32_t i = 0; i < N; i++) {
-        uint32_t j = (*reinterpret_cast<uint32_t*>(&B[(2 * r - 1) * 64])) % N;
-        for (uint32_t k = 0; k < block_len; k++) {
-            B[k] ^= V[j * block_len + k];
-        }
+    for (uint32_t i = 0; i < N; ++i) {
+        uint32_t j = (*reinterpret_cast<const uint32_t*>(&B[(2 * r - 1) * 64])) % N;
+        for (uint32_t k = 0; k < block_len; ++k) B[k] ^= V[j * block_len + k];
         scrypt_blockmix(B, r);
     }
 }
@@ -104,31 +94,26 @@ void Scrypt::pbkdf2_sha256(const uint8_t* pass, size_t pass_len,
     if (PKCS5_PBKDF2_HMAC(reinterpret_cast<const char*>(pass), pass_len,
                            salt, salt_len, count, EVP_sha256(),
                            output_len, output) != 1) {
-        throw std::runtime_error("PBKDF2 SHA256 failed");
+        throw std::runtime_error("[CORE] PBKDF2 SHA256 failed");
     }
 }
 
 std::vector<uint8_t> Scrypt::hash(const std::vector<uint8_t>& password,
                                  const std::vector<uint8_t>& salt,
                                  uint32_t N, uint32_t r, uint32_t p) {
-    uint32_t block_len = 128 * r;
+    const uint32_t block_len = 128 * r;
     std::vector<uint8_t> B(p * block_len);
     std::vector<uint8_t> V(N * block_len);
 
     pbkdf2_sha256(password.data(), password.size(), salt.data(), salt.size(), 1, B.data(), p * block_len);
-
-    for (uint32_t i = 0; i < p; i++) {
-        scrypt_romix(&B[i * block_len], r, N, V.data());
-    }
+    for (uint32_t i = 0; i < p; ++i) scrypt_romix(&B[i * block_len], r, N, V.data());
 
     std::vector<uint8_t> output(32);
     pbkdf2_sha256(password.data(), password.size(), B.data(), B.size(), 1, output.data(), 32);
-
     return output;
 }
 
 std::vector<uint8_t> Scrypt::litecoin_scrypt(const std::vector<uint8_t>& data) {
-    // Litecoin Scrypt params: N=1024, r=1, p=1
     return hash(data, data, 1024, 1, 1);
 }
 

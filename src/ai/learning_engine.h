@@ -1,14 +1,17 @@
-#pragma once
+#ifndef AI_LEARNING_ENGINE_H
+#define AI_LEARNING_ENGINE_H
+
 #include <vector>
 #include <map>
 #include <string>
 #include <memory>
 #include <chrono>
+#include <mutex>
 
 namespace ai {
 
 /**
- * @brief Simple AI Learning architecture for performance, difficulty, and profitability
+ * @brief Thread-safe AI Learning Engine for performance optimization and maintenance.
  */
 class LearningEngine {
 public:
@@ -17,33 +20,27 @@ public:
     LearningEngine();
     ~LearningEngine();
 
-    // Hardware Stats & Optimization
+    // Performance Data
     void addDataPoint(float intensity, int threads, float hashrate, float temp);
     void predictOptimalSettings(float target_temp, float current_difficulty, float& optimal_intensity, int& optimal_threads);
 
-    // Active Auto-Tuning
+    // Auto-Tuning
     void startAutoTuning();
-    bool isTuning() const { return tuning_state != TuningState::Idle; }
-    void getNextTuningProbe(float& intensity, int& threads);
+    bool isTuning() const;
+    void getNextTuningProbe(float& intensity, int& threads) const;
     void updateTuningProgress(float hashrate);
-    TuningState getTuningState() const { return tuning_state; }
+    TuningState getTuningState() const;
 
-    // Network Difficulty & Profitability
+    // Intelligence
     void addDifficultyDataPoint(double difficulty);
     double predictNextDifficulty();
-
-    struct Profitability {
-        std::string coin;
-        double score; // Combined price/difficulty score
-    };
     void updateCoinProfitability(const std::string& coin, double difficulty, double price);
     std::string getMostProfitableCoin();
 
-    // Hardware Maintenance
+    // Health
     void updateHardwareHealth(float temp, float fan_speed);
-    bool isInstabilityPredicted() const { return hardware_risk_alert; }
+    bool isInstabilityPredicted() const;
 
-    // Model I/O
     bool loadModel(const std::string& model_path);
 
 private:
@@ -60,21 +57,25 @@ private:
         std::chrono::system_clock::time_point timestamp;
     };
 
+    // Thread Safety
+    mutable std::mutex data_mutex;
+
+    // History
     std::vector<DataPoint> history;
     std::vector<DifficultyPoint> diff_history;
     std::map<std::string, double> coin_profitability_map;
+    std::vector<float> temp_history;
 
-    // AI state
+    // State
     TuningState tuning_state = TuningState::Idle;
     float current_probe_intensity = 1.0f;
     int current_probe_threads = 1;
     int probe_count = 0;
     const int max_probes = 10;
     std::chrono::steady_clock::time_point last_probe_time;
-
-    // Maintenance state
     bool hardware_risk_alert = false;
-    std::vector<float> temp_history;
 };
 
 } // namespace ai
+
+#endif // AI_LEARNING_ENGINE_H

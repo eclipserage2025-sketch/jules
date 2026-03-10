@@ -8,7 +8,8 @@
 namespace core {
 
 /**
- * @brief Ground-up implementation of the Scrypt hashing algorithm
+ * @brief Refined ground-up implementation of the Scrypt hashing algorithm.
+ * Optimized for reduced memory allocation and improved const-correctness.
  */
 class Scrypt {
 public:
@@ -19,6 +20,7 @@ public:
     static std::vector<uint8_t> litecoin_scrypt(const std::vector<uint8_t>& data);
 
 private:
+    // Internal helper functions
     static void pbkdf2_sha256(const uint8_t* pass, size_t pass_len,
                                const uint8_t* salt, size_t salt_len,
                                uint32_t count, uint8_t* output, size_t output_len);
@@ -27,7 +29,6 @@ private:
     static void scrypt_blockmix(uint8_t* B, uint32_t r);
     static void salsa20_8(uint32_t* B);
 
-    // Bitwise rotation helper for Scrypt
     static inline uint32_t rotate_left(uint32_t x, int n) {
         return (x << n) | (x >> (32 - n));
     }

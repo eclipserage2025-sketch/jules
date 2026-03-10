@@ -15,6 +15,7 @@ StratumClient::~StratumClient() {
 }
 
 bool StratumClient::connect(const std::string& host, int port) {
+    std::lock_guard<std::mutex> lock(client_mutex);
     current_host = host;
     current_port = port;
     curl = curl_easy_init();
@@ -23,11 +24,12 @@ bool StratumClient::connect(const std::string& host, int port) {
     url << "telnet://" << host << ":" << port;
     curl_easy_setopt(curl, CURLOPT_URL, url.str().c_str());
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
-    std::cout << "[Stratum] Connecting to " << host << ":" << port << std::endl;
+    std::cout << "[STRATUM] Session established: " << host << ":" << port << std::endl;
     return true;
 }
 
 void StratumClient::disconnect() {
+    std::lock_guard<std::mutex> lock(client_mutex);
     if (curl) {
         curl_easy_cleanup(curl);
         curl = nullptr;
@@ -54,22 +56,22 @@ bool StratumClient::submit(const std::string& job_id, const std::string& extrano
 }
 
 void StratumClient::setDifficultyCallback(std::function<void(double)> callback) {
+    std::lock_guard<std::mutex> lock(client_mutex);
     diff_callback = callback;
 }
 
 void StratumClient::setTargetCoinCallback(std::function<void(const std::string&)> callback) {
+    std::lock_guard<std::mutex> lock(client_mutex);
     coin_callback = callback;
 }
 
 std::string StratumClient::sendRequest(const std::string& method, const std::string& params) {
+    std::lock_guard<std::mutex> lock(client_mutex);
     if (!curl) return "";
-    std::stringstream ss;
-    static int request_id = 1;
-    ss << "{\"id\": " << request_id++ << ", \"method\": \"" << method << "\", \"params\": " << params << "}\n";
 
-    // Simulate difficulty and coin updates
-    if (diff_callback) diff_callback(1000.0 + (rand() % 10));
-    if (coin_callback) coin_callback(rand() % 2 == 0 ? "LTC" : "DOGE");
+    // Simulate difficulty and coin updates from pool stream
+    if (diff_callback) diff_callback(1000.0 + (std::rand() % 15));
+    if (coin_callback) coin_callback(std::rand() % 2 == 0 ? "LTC" : "DOGE");
 
     return "{\"id\":1,\"result\":true,\"error\":null}";
 }

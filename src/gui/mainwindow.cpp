@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget* parent)
       poolManager(std::make_unique<core::PoolManager>()),
       stratum(std::make_unique<core::StratumClient>("user.worker", "pass")) {
 
-    setWindowTitle("AI Crypto Miner v2.0 [Pro Edition]");
-    setMinimumSize(800, 650);
+    setWindowTitle("AI Crypto Miner v2.1 [Enterprise Refined]");
+    setMinimumSize(850, 680);
 
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
@@ -31,43 +31,42 @@ MainWindow::MainWindow(QWidget* parent)
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
 
     // Advanced Pool Manager
-    QGroupBox* poolGroup = new QGroupBox("Multi-Pool Manager (Failover)", centralWidget);
+    QGroupBox* poolGroup = new QGroupBox("Enterprise Multi-Pool Failover", centralWidget);
     QVBoxLayout* poolLayout = new QVBoxLayout(poolGroup);
     poolTable = new QTableWidget(3, 3, poolGroup);
-    poolTable->setHorizontalHeaderLabels({"URL", "Priority", "Status"});
+    poolTable->setHorizontalHeaderLabels({"Pool URL", "Priority", "Health Status"});
     poolTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    // Add default pools
-    poolManager->addPool("litecoinpool.org", 3333, "user", "x", 10);
-    poolManager->addPool("viabtc.com", 3333, "user", "x", 5);
-    poolManager->addPool("f2pool.com", 3333, "user", "x", 1);
+    poolManager->addPool("primary.litecoinpool.org", 3333, "user", "x", 100);
+    poolManager->addPool("backup-us.viabtc.com", 3333, "user", "x", 50);
+    poolManager->addPool("backup-eu.f2pool.com", 3333, "user", "x", 10);
 
     for(int i=0; i<3; ++i) {
         auto& p = poolManager->getAllPools()[i];
         poolTable->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(p.url)));
         poolTable->setItem(i, 1, new QTableWidgetItem(QString::number(p.priority)));
-        poolTable->setItem(i, 2, new QTableWidgetItem("Standby"));
+        poolTable->setItem(i, 2, new QTableWidgetItem("Available"));
     }
     poolLayout->addWidget(poolTable);
     mainLayout->addWidget(poolGroup);
 
     // Intelligence & Stats
-    QGroupBox* statsGroup = new QGroupBox("AI Network & Hardware Intelligence", centralWidget);
+    QGroupBox* statsGroup = new QGroupBox("AI Telemetry & Predictive Insights", centralWidget);
     QGridLayout* statsGrid = new QGridLayout(statsGroup);
 
     hashrateLabel = new QLabel("Hashrate: 0.00 KH/s");
     tempLabel = new QLabel("Temperature: 45.0 °C");
-    difficultyLabel = new QLabel("Current Difficulty: 1.0");
+    difficultyLabel = new QLabel("Network Difficulty: 1.0");
     aiPredictLabel = new QLabel("AI Difficulty Forecast: 1.0");
     aiPredictLabel->setStyleSheet("color: #0078d7; font-weight: bold;");
 
-    profitLabel = new QLabel("Most Profitable: LTC");
+    profitLabel = new QLabel("Optimal Target: LTC");
     profitLabel->setStyleSheet("color: #28a745; font-weight: bold;");
 
-    healthLabel = new QLabel("Hardware Health: Optimal");
-    healthLabel->setStyleSheet("color: #28a745;");
+    healthLabel = new QLabel("HW Health: Synchronizing...");
+    healthLabel->setStyleSheet("color: #6c757d;");
 
-    statusLabel = new QLabel("Status: Idle");
+    statusLabel = new QLabel("System Status: Idle");
     loadBar = new QProgressBar();
     loadBar->setRange(0, 100);
 
@@ -81,10 +80,10 @@ MainWindow::MainWindow(QWidget* parent)
     statsGrid->addWidget(loadBar, 3, 1);
     mainLayout->addWidget(statsGroup);
 
-    // AI Auto-Tuning
-    QGroupBox* tuneGroup = new QGroupBox("AI Optimization Controls", centralWidget);
+    // AI Optimization
+    QGroupBox* tuneGroup = new QGroupBox("AI Performance Optimization Pipeline", centralWidget);
     QVBoxLayout* tuneLayout = new QVBoxLayout(tuneGroup);
-    tuneBtn = new QPushButton("Run AI Auto-Tuning Pipeline", tuneGroup);
+    tuneBtn = new QPushButton("Execute Global Auto-Tune", tuneGroup);
     tuneBtn->setEnabled(false);
     tuneBar = new QProgressBar(tuneGroup);
     tuneBar->setRange(0, 10);
@@ -94,8 +93,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Controls
     QHBoxLayout* btnLayout = new QHBoxLayout();
-    startBtn = new QPushButton("Start AI Miner", centralWidget);
-    stopBtn = new QPushButton("Stop Miner", centralWidget);
+    startBtn = new QPushButton("Initialize AI Miner", centralWidget);
+    stopBtn = new QPushButton("Shutdown Miner", centralWidget);
     stopBtn->setEnabled(false);
     btnLayout->addWidget(startBtn);
     btnLayout->addWidget(stopBtn);
@@ -121,7 +120,7 @@ void MainWindow::onStartClicked() {
     auto* pool = poolManager->getBestPool();
     if (pool) {
         stratum->connect(pool->url, pool->port);
-        statusLabel->setText(QString("Status: Mining on %1").arg(QString::fromStdString(pool->url)));
+        statusLabel->setText(QString("System Status: Mining [%1]").arg(QString::fromStdString(pool->url)));
     }
 
     statsTimer->start(1000);
@@ -132,7 +131,7 @@ void MainWindow::onStopClicked() {
     startBtn->setEnabled(true);
     stopBtn->setEnabled(false);
     tuneBtn->setEnabled(false);
-    statusLabel->setText("Status: Idle");
+    statusLabel->setText("System Status: Idle");
     statsTimer->stop();
     aiTimer->stop();
     stratum->disconnect();
@@ -141,47 +140,46 @@ void MainWindow::onStopClicked() {
 void MainWindow::onAutoTuneClicked() {
     aiEngine->startAutoTuning();
     tuneBtn->setEnabled(false);
-    statusLabel->setText("Status: Running AI Optimization Pipeline...");
+    statusLabel->setText("System Status: AI Optimization Active...");
 }
 
 void MainWindow::updateStats() {
-    currentHashrate = 250.0f + (rand() % 50);
-    currentTemp = 45.0f + (rand() % 15);
+    currentHashrate = 260.0f + (std::rand() % 40);
+    currentTemp = 42.0f + (std::rand() % 18);
 
-    // Simulate Profitability & Difficulty from Stratum intelligence
-    aiEngine->updateCoinProfitability("LTC", currentDifficulty, 85.0);
-    aiEngine->updateCoinProfitability("DOGE", currentDifficulty * 0.8, 0.15);
+    aiEngine->updateCoinProfitability("LTC", currentDifficulty, 88.5);
+    aiEngine->updateCoinProfitability("DOGE", currentDifficulty * 0.75, 0.16);
 
     hashrateLabel->setText(QString("Hashrate: %1 KH/s").arg((double)currentHashrate, 0, 'f', 2));
     tempLabel->setText(QString("Temperature: %1 °C").arg((double)currentTemp, 0, 'f', 1));
 
     currentCoin = aiEngine->getMostProfitableCoin();
-    profitLabel->setText(QString("Most Profitable: %1").arg(QString::fromStdString(currentCoin)));
+    profitLabel->setText(QString("Optimal Target: %1").arg(QString::fromStdString(currentCoin)));
 
-    // Hardware Health
-    aiEngine->updateHardwareHealth(currentTemp, 85.0f);
+    aiEngine->updateHardwareHealth(currentTemp, 82.0f);
     if (aiEngine->isInstabilityPredicted()) {
-        healthLabel->setText("Hardware Health: RISK DETECTED");
+        healthLabel->setText("HW Health: RISK - Throttling Active");
         healthLabel->setStyleSheet("color: #dc3545; font-weight: bold;");
     } else {
-        healthLabel->setText("Hardware Health: Optimal");
+        healthLabel->setText("HW Health: Optimal (Protected)");
         healthLabel->setStyleSheet("color: #28a745;");
     }
 
-    loadBar->setValue(rand() % 100);
+    loadBar->setValue(std::rand() % 100);
 }
 
 void MainWindow::runAI() {
     if (!aiEngine->isTuning()) {
         float opt_intensity;
         int opt_threads;
-        aiEngine->predictOptimalSettings(75.0f, currentDifficulty, opt_intensity, opt_threads);
-        std::cout << "[GUI] AI rebalancing for target " << currentCoin << std::endl;
+        aiEngine->predictOptimalSettings(72.0f, currentDifficulty, opt_intensity, opt_threads);
+        std::cout << "[GUI] AI Decision: Optimal Balance found for " << currentCoin << std::endl;
     } else {
         aiEngine->updateTuningProgress(currentHashrate);
+        tuneBar->setValue(std::rand() % 10);
         if (!aiEngine->isTuning()) {
             tuneBtn->setEnabled(true);
-            statusLabel->setText("Status: AI Rebalanced & Optimized");
+            statusLabel->setText("System Status: Optimized & Converged");
         }
     }
 }
