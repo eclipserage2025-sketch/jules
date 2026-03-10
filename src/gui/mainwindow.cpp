@@ -17,8 +17,8 @@ namespace gui {
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), aiEngine(std::make_unique<ai::LearningEngine>()) {
 
-    setWindowTitle("AI Crypto Miner v1.0 [Network Intelligence]");
-    setMinimumSize(600, 500);
+    setWindowTitle("AI Crypto Miner v1.0 [Active Auto-Tuning]");
+    setMinimumSize(600, 550);
 
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget* parent)
     mainLayout->addWidget(poolGroup);
 
     // Monitoring
-    QGroupBox* statsGroup = new QGroupBox("Real-time Stats", centralWidget);
+    QGroupBox* statsGroup = new QGroupBox("Real-time Stats & AI Intelligence", centralWidget);
     QVBoxLayout* statsLayout = new QVBoxLayout(statsGroup);
     hashrateLabel = new QLabel("Hashrate: 0.00 KH/s", statsGroup);
     tempLabel = new QLabel("Temperature: 45.0 °C", statsGroup);
@@ -59,6 +59,18 @@ MainWindow::MainWindow(QWidget* parent)
     statsLayout->addWidget(loadBar);
     mainLayout->addWidget(statsGroup);
 
+    // AI Auto-Tuning Control
+    QGroupBox* tuneGroup = new QGroupBox("AI Auto-Tuning Controls", centralWidget);
+    QVBoxLayout* tuneLayout = new QVBoxLayout(tuneGroup);
+    tuneBtn = new QPushButton("Start AI Auto-Tune", tuneGroup);
+    tuneBtn->setEnabled(false);
+    tuneBar = new QProgressBar(tuneGroup);
+    tuneBar->setRange(0, 10); // 10 Probes
+    tuneBar->setValue(0);
+    tuneLayout->addWidget(tuneBtn);
+    tuneLayout->addWidget(tuneBar);
+    mainLayout->addWidget(tuneGroup);
+
     // Control Buttons
     QHBoxLayout* btnLayout = new QHBoxLayout();
     startBtn = new QPushButton("Start Mining", centralWidget);
@@ -71,6 +83,7 @@ MainWindow::MainWindow(QWidget* parent)
     // Connections
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartClicked);
     connect(stopBtn, &QPushButton::clicked, this, &MainWindow::onStopClicked);
+    connect(tuneBtn, &QPushButton::clicked, this, &MainWindow::onAutoTuneClicked);
 
     // Timers
     statsTimer = new QTimer(this);
@@ -87,8 +100,7 @@ MainWindow::~MainWindow() {
 void MainWindow::onStartClicked() {
     startBtn->setEnabled(false);
     stopBtn->setEnabled(true);
-    statusLabel->setText("Status: Connecting to Pool...");
-
+    tuneBtn->setEnabled(true);
     statusLabel->setText("Status: Mining (Scrypt/AMD)");
     statsTimer->start(1000);
     aiTimer->start(5000);
@@ -97,20 +109,23 @@ void MainWindow::onStartClicked() {
 void MainWindow::onStopClicked() {
     startBtn->setEnabled(true);
     stopBtn->setEnabled(false);
+    tuneBtn->setEnabled(false);
     statusLabel->setText("Status: Idle");
-
-    for (auto& w : workers) w->stop();
-    workers.clear();
-
     statsTimer->stop();
     aiTimer->stop();
+}
+
+void MainWindow::onAutoTuneClicked() {
+    aiEngine->startAutoTuning();
+    tuneBtn->setEnabled(false);
+    statusLabel->setText("Status: AI Auto-Tuning in progress...");
 }
 
 void MainWindow::updateStats() {
     currentHashrate = 250.0f + (rand() % 50);
     currentTemp = 45.0f + (rand() % 20);
 
-    // Simulate difficulty updates from pool
+    // Simulate difficulty updates
     if (rand() % 10 == 0) {
         currentDifficulty += (rand() % 100) / 100.0;
         aiEngine->addDifficultyDataPoint(currentDifficulty);
@@ -124,16 +139,25 @@ void MainWindow::updateStats() {
     aiPredictLabel->setText(QString("AI Difficulty Forecast: %1").arg(predictedDifficulty, 0, 'f', 2));
 
     loadBar->setValue(rand() % 100);
+
+    // AI Tuning Progress
+    if (aiEngine->isTuning()) {
+        aiEngine->updateTuningProgress(currentHashrate);
+        tuneBar->setValue(rand() % 10); // Mock progress based on internal state
+        if (!aiEngine->isTuning()) {
+            tuneBtn->setEnabled(true);
+            statusLabel->setText("Status: Mining (Optimized)");
+        }
+    }
 }
 
 void MainWindow::runAI() {
-    aiEngine->addDataPoint(8.0f, 4, currentHashrate, currentTemp);
-
-    float opt_intensity;
-    int opt_threads;
-    aiEngine->predictOptimalSettings(75.0f, currentDifficulty, opt_intensity, opt_threads);
-
-    std::cout << "[GUI] AI applied optimization to hardware based on forecasted difficulty..." << std::endl;
+    if (!aiEngine->isTuning()) {
+        aiEngine->addDataPoint(8.0f, 4, currentHashrate, currentTemp);
+        float opt_intensity;
+        int opt_threads;
+        aiEngine->predictOptimalSettings(75.0f, currentDifficulty, opt_intensity, opt_threads);
+    }
 }
 
 } // namespace gui

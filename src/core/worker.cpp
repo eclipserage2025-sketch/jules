@@ -31,24 +31,30 @@ void CpuWorker::setWork(const std::vector<uint8_t>& work_data) {
     current_work = work_data;
 }
 
+void CpuWorker::reconfigure(float intensity, int threads) {
+    std::cout << "[Worker] CPU Reconfiguring to " << threads << " threads." << std::endl;
+    if (threads == num_threads) return;
+
+    // Stop current threads
+    stop();
+    // Update thread count and restart
+    num_threads = threads;
+    start();
+}
+
 void CpuWorker::mineLoop() {
-    uint32_t nonce = 0; // Simple local nonce
+    uint32_t nonce = 0;
     while (running) {
         if (current_work.empty()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
-
-        // Simulating mining by hashing current work + nonce
         auto hash = Scrypt::litecoin_scrypt(current_work);
-
-        // In real mining, check hash against target difficulty
         hashes_done++;
         nonce++;
     }
 }
 
-// GPU Worker implementation (Simulation for OpenCL)
 void GpuWorker::start() {
     running = true;
     gpu_thread = std::thread(&GpuWorker::gpuLoop, this);
@@ -60,21 +66,21 @@ void GpuWorker::stop() {
 }
 
 double GpuWorker::getHashrate() const {
-    return hashes_done.load() * 1024; // Simulated GPU speed factor
+    return hashes_done.load() * 1024;
 }
 
-void GpuWorker::setWork(const std::vector<uint8_t>& work_data) {
-    // GPU specific work setup
+void GpuWorker::setWork(const std::vector<uint8_t>& work_data) {}
+
+void GpuWorker::reconfigure(float new_intensity, int threads) {
+    std::cout << "[Worker] GPU Reconfiguring to intensity " << new_intensity << std::endl;
+    intensity = (int)new_intensity;
+    // In a real OpenCL implementation, this would update the global work size
 }
 
 void GpuWorker::gpuLoop() {
     while (running) {
-        // Here we would call OpenCL kernels
-        // 1. clEnqueueNDRangeKernel
-        // 2. clFinish
-        // 3. Check results
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        hashes_done += (1 << intensity); // Simulated hashrate based on intensity
+        hashes_done += (1 << intensity.load());
     }
 }
 

@@ -24,6 +24,7 @@ public:
 private slots:
     void onStartClicked();
     void onStopClicked();
+    void onAutoTuneClicked();
     void updateStats();
     void runAI();
 
@@ -39,7 +40,9 @@ private:
     QLabel* statusLabel;
     QPushButton* startBtn;
     QPushButton* stopBtn;
+    QPushButton* tuneBtn;
     QProgressBar* loadBar;
+    QProgressBar* tuneBar;
 
     // Core Logic
     std::vector<std::unique_ptr<core::Worker>> workers;

@@ -14,6 +14,9 @@ public:
     virtual double getHashrate() const = 0;
     virtual void setWork(const std::vector<uint8_t>& work_data) = 0;
 
+    // Dynamic Reconfiguration
+    virtual void reconfigure(float intensity, int threads) = 0;
+
 protected:
     std::atomic<bool> running{false};
     std::atomic<uint64_t> hashes_done{0};
@@ -26,9 +29,10 @@ public:
     void stop() override;
     double getHashrate() const override;
     void setWork(const std::vector<uint8_t>& work_data) override;
+    void reconfigure(float intensity, int threads) override;
 
 private:
-    int num_threads;
+    std::atomic<int> num_threads;
     std::vector<std::thread> thread_pool;
     std::vector<uint8_t> current_work;
     void mineLoop();
@@ -41,10 +45,11 @@ public:
     void stop() override;
     double getHashrate() const override;
     void setWork(const std::vector<uint8_t>& work_data) override;
+    void reconfigure(float intensity, int threads) override;
 
 private:
     int device_id;
-    int intensity;
+    std::atomic<int> intensity;
     std::thread gpu_thread;
     void gpuLoop();
 };
