@@ -17,13 +17,10 @@ StratumClient::~StratumClient() {
 bool StratumClient::connect() {
     curl = curl_easy_init();
     if (!curl) return false;
-
     std::stringstream url;
-    url << "telnet://" << host << ":" << port; // Using telnet for raw TCP via curl
-
+    url << "telnet://" << host << ":" << port;
     curl_easy_setopt(curl, CURLOPT_URL, url.str().c_str());
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-
     return true;
 }
 
@@ -53,23 +50,23 @@ bool StratumClient::submit(const std::string& job_id, const std::string& extrano
     return !response.empty();
 }
 
+void StratumClient::setDifficultyCallback(std::function<void(double)> callback) {
+    diff_callback = callback;
+}
+
 std::string StratumClient::sendRequest(const std::string& method, const std::string& params) {
     if (!curl) return "";
-
     std::stringstream ss;
     static int request_id = 1;
     ss << "{\"id\": " << request_id++ << ", \"method\": \"" << method << "\", \"params\": " << params << "}\n";
-
     std::string request = ss.str();
-    std::string response_data;
 
-    // In a real implementation with libcurl, we would use CURLOPT_READFUNCTION
-    // or custom socket handling for Stratum. This is a placeholder for the logic.
-    std::cout << "Stratum Sending: " << request;
-
-    // Simulating response for "mining.subscribe"
-    if (method == "mining.subscribe") {
-        return "{\"id\":1,\"result\":[[\"mining.notify\",\"ae0de008\"],\"ae0de008\",4],\"error\":null}";
+    // In actual use, we parse 'mining.set_difficulty' from incoming socket data
+    // Simulating difficulty callback for testing
+    if (diff_callback) {
+        static double simulated_difficulty = 1000.0;
+        simulated_difficulty += (rand() % 10);
+        diff_callback(simulated_difficulty);
     }
 
     return "{\"id\":1,\"result\":true,\"error\":null}";

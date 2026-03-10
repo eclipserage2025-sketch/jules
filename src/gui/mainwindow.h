@@ -8,6 +8,7 @@
 #include <QHBoxLayout>
 #include <QGroupBox>
 #include <QProgressBar>
+#include <QFormLayout>
 #include <memory>
 #include "core/worker.h"
 #include "ai/learning_engine.h"
@@ -33,6 +34,8 @@ private:
     QLineEdit* passEdit;
     QLabel* hashrateLabel;
     QLabel* tempLabel;
+    QLabel* difficultyLabel;
+    QLabel* aiPredictLabel;
     QLabel* statusLabel;
     QPushButton* startBtn;
     QPushButton* stopBtn;
@@ -47,6 +50,8 @@ private:
     // Simulation variables
     float currentHashrate = 0.0f;
     float currentTemp = 45.0f;
+    double currentDifficulty = 1.0;
+    double predictedDifficulty = 1.0;
 };
 
 } // namespace gui
