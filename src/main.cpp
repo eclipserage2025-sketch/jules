@@ -1,8 +1,12 @@
 #include <QApplication>
 #include "gui/mainwindow.h"
 #include <iostream>
+#include <ctime>
 
 int main(int argc, char *argv[]) {
+    // Seed random number generator for realistic simulation
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     QApplication app(argc, argv);
 
     gui::MainWindow window;
