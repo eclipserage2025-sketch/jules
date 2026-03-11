@@ -1,13 +1,15 @@
-# Build directories
+# Build and Output directories
 build/
 bin/
 out/
+dist/
 CMakeFiles/
 CMakeCache.txt
 *.cmake
 install_manifest.txt
+_deps/
 
-# Executables and artifacts
+# Compiled Executables and Libraries
 *.o
 *.obj
 *.bin
@@ -15,22 +17,41 @@ install_manifest.txt
 *.dll
 *.so
 *.dylib
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# Specific Test/Artifacts
 test_scrypt
+test_nn
+test_advanced
+test_ai_diffu
+test_ai_autotune
 test_minimal
 test_runner
 AIMiner
+AIMiner_Ultimate_v3.zip
 
-# IDEs
+# IDE and Project Files
 .vscode/
 .idea/
 *.swp
 *.swo
+*.suo
+*.user
+*.userosscache
+*.sln
+*.vcxproj
+*.filters
 
-# System
+# OS Generated Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Qt generated files
+# Qt Generated Files
 qrc_*.cpp
 moc_*.cpp
 ui_*.h
+*.qrc.depends
