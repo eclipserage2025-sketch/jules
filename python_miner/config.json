@@ -1,0 +1,15 @@
+{
+    "pool_url": "stratum+tcp://litecoinpool.org:3333",
+    "wallet_address": "LYourWalletAddressHere",
+    "worker_name": "python_ai_worker",
+    "thread_count": 4,
+    "ai_sensitivity": 0.5,
+    "failover_pools": [
+        {
+            "pool_url": "stratum+tcp://us.litecoinpool.org:3333",
+            "wallet_address": "LYourWalletAddressHere"
+        }
+    ],
+    "gpu_enabled": true,
+    "intensity": 12
+}
