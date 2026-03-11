@@ -1,74 +1,73 @@
-cmake_minimum_required(VERSION 3.28) # Modern CMake for 2026
-project(AIMiner VERSION 3.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.24)
+project(AIMiner VERSION 3.2.0 LANGUAGES CXX)
 
-# Target modern C++23 (The standard for 2026 performance)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Optimization for 2026 Hardware (AVX-512, AMX, etc.)
+# Optimization for Windows
 if(MSVC)
-    add_compile_options(/arch:AVX512 /Ot /Oi /Gy)
+    add_compile_options(/W4 /WX- /O2 /Oi /Gy /arch:AVX2)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)
 endif()
 
 # -----------------------------------------------------------------------------
-# Dependency Management (Modern FetchContent for zero-setup builds)
+# Dependency Management (Automatic FetchContent)
 # -----------------------------------------------------------------------------
 include(FetchContent)
 
-# 1. Qt6 Setup (Modern way)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Core)
-qt_standard_project_setup()
+# 1. nlohmann_json (Automated Fetch)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(json)
 
-# 2. OpenCL (Native GPU compute)
-find_package(OpenCL REQUIRED)
-
-# 3. libcurl (Automated FetchContent)
+# 2. libcurl (Automated Fetch)
 FetchContent_Declare(
     curl
     GIT_REPOSITORY https://github.com/curl/curl.git
-    GIT_TAG v8.6.0 # Latest stable as of now, easily updated for 2026
+    GIT_TAG v8.6.0
 )
 set(BUILD_CURL_EXE OFF CACHE INTERNAL "")
-set(CURL_USE_OPENSSL ON CACHE INTERNAL "")
+set(BUILD_LIBCURL_DOCS OFF CACHE INTERNAL "")
+set(CURL_ENABLE_SSL ON CACHE INTERNAL "")
 FetchContent_MakeAvailable(curl)
 
-# 4. OpenSSL (Automated FetchContent)
-FetchContent_Declare(
-    openssl
-    GIT_REPOSITORY https://github.com/openssl/openssl.git
-    GIT_TAG openssl-3.2.1
-)
-# Note: OpenSSL build via CMake is complex;
-# in 2026, most use vcpkg or prebuilt binaries for Windows
-find_package(OpenSSL REQUIRED)
+# 3. ONNX Runtime (Automated Binary Fetch for Windows)
+set(ONNX_VER "1.17.1")
+if(WIN32)
+    FetchContent_Declare(
+        onnxruntime
+        URL "https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_VER}/onnxruntime-win-x64-${ONNX_VER}.zip"
+    )
+    FetchContent_MakeAvailable(onnxruntime)
+endif()
 
-# 5. ONNX Runtime (Binary FetchContent)
-# For 2026, we fetch the optimized GPU-accelerated binaries
-set(ONNXRUNTIME_VERSION "1.17.1")
-FetchContent_Declare(
-    onnxruntime
-    URL "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-win-x64-${ONNXRUNTIME_VERSION}.zip"
-)
-FetchContent_MakeAvailable(onnxruntime)
+# 4. Qt6 (Must be pre-installed via Qt Online Installer)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network Gui Core)
+
+# 5. OpenSSL & OpenCL (Standard System dependencies)
+find_package(OpenSSL REQUIRED)
+find_package(OpenCL REQUIRED)
 
 # -----------------------------------------------------------------------------
-# Project Structure
+# Project Configuration
 # -----------------------------------------------------------------------------
 include_directories(src)
 include_directories(include)
-include_directories(${onnxruntime_SOURCE_DIR}/include)
 
+# Gather all source files
 file(GLOB_RECURSE SOURCES
     "src/*.cpp"
     "src/*.h"
 )
 
-# Qt Resources
+# Qt6 Resource system
 set(RESOURCE_FILES "resources.qrc")
 
 # -----------------------------------------------------------------------------
-# Main Executable (Windows GUI Mode)
+# Target: AIMiner (Windows GUI)
 # -----------------------------------------------------------------------------
 qt_add_executable(AIMiner WIN32
     ${SOURCES}
@@ -84,16 +83,25 @@ target_link_libraries(AIMiner PRIVATE
     libcurl
     OpenSSL::SSL
     OpenSSL::Crypto
-    onnxruntime
+    nlohmann_json::nlohmann_json
 )
 
-# GPU-specific Windows integration (ADL SDK)
+# Link ONNX Runtime on Windows
 if(WIN32)
-    target_link_libraries(AIMiner PRIVATE gdi32 user32 shell32 advapi32)
+    # The zip contains lib/onnxruntime.lib
+    target_link_libraries(AIMiner PRIVATE "${onnxruntime_SOURCE_DIR}/lib/onnxruntime.lib")
+    target_include_directories(AIMiner PRIVATE "${onnxruntime_SOURCE_DIR}/include")
+
+    # Auto-copy DLL to output directory
+    add_custom_command(TARGET AIMiner POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${onnxruntime_SOURCE_DIR}/lib/onnxruntime.dll"
+        $<TARGET_FILE_DIR:AIMiner>
+    )
 endif()
 
 # -----------------------------------------------------------------------------
-# Modern Testing (CTest)
+# Unit Testing
 # -----------------------------------------------------------------------------
 enable_testing()
 
@@ -108,11 +116,6 @@ add_test(NAME TestScrypt COMMAND test_scrypt)
 add_test(NAME TestNeural COMMAND test_neural)
 
 # -----------------------------------------------------------------------------
-# Installation & Deployment
+# Deployment Logic
 # -----------------------------------------------------------------------------
 install(TARGETS AIMiner DESTINATION bin)
-qt_generate_deploy_app_script(
-    TARGET AIMiner
-    OUTPUT_SCRIPT deploy_script
-)
-install(SCRIPT ${deploy_script})
