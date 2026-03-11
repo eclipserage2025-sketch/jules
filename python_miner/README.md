@@ -10,26 +10,66 @@ A functional, high-performance standalone Python miner for Litecoin, featuring A
 - **Multi-threaded**: Optimized for multi-core CPUs with dynamic thread management.
 - **AI Auto-Tuning**: Automatically discovers the best intensity and thread settings for your hardware.
 
-## Installation
+## Installation Guide
 
 ### Prerequisites
-
 - Python 3.8+
-- OpenCL Drivers (AMD/NVIDIA/Intel) for GPU mining.
-- C++ Build Tools (required for installing `ltc_scrypt`).
+- `pip` (Python package manager)
 
-### Steps
+---
 
-1. **Clone the repository** (if you haven't already).
-2. **Navigate to the project directory**:
+### 🐧 Linux (Ubuntu/Debian)
+
+1. **Install Build Tools and Dependencies**:
    ```bash
-   cd python_miner
+   sudo apt-get update
+   sudo apt-get install build-essential python3-dev libssl-dev
    ```
-3. **Install dependencies**:
+
+2. **OpenCL Support** (Optional for GPU mining):
+   - For AMD: `sudo apt-get install amdgpu-pro`
+   - For NVIDIA: `sudo apt-get install nvidia-cuda-toolkit`
+
+3. **Install Python Packages**:
    ```bash
    pip install -r requirements.txt
    ```
-   *Note: On Windows, you might need to install `ltc_scrypt` from a pre-compiled wheel or ensure Visual Studio Build Tools are installed.*
+
+---
+
+### 🍎 macOS (Intel/Apple Silicon)
+
+1. **Install Command Line Tools**:
+   ```bash
+   xcode-select --install
+   ```
+
+2. **Install OpenCL Support**:
+   - macOS has built-in OpenCL support, but ensure you are using a compatible Python version (Homebrew Python recommended).
+
+3. **Install Python Packages**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+### 🪟 Windows
+
+1. **Install Build Tools**:
+   - Download and install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+   - Ensure "Desktop development with C++" is selected during installation.
+
+2. **OpenCL Support** (Optional for GPU mining):
+   - Install the latest drivers for your GPU (NVIDIA/AMD/Intel).
+
+3. **Install Python Packages**:
+   ```powershell
+   pip install -r requirements.txt
+   ```
+   *Note: If `ltc_scrypt` fails to compile, you may need to install a pre-compiled wheel or ensure the `vcvarsall.bat` environment is set up.*
+
+---
 
 ## Configuration
 
@@ -47,7 +87,7 @@ Edit `config.json` to set your pool and wallet:
 
 ## Usage
 
-Run the miner:
+Run the miner from the `python_miner` directory:
 ```bash
 python main.py
 ```
