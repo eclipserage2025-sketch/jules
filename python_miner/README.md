@@ -105,6 +105,19 @@ The miner will automatically start, connect to the pool, and begin the AI auto-t
 ---
 *Developed by Jules.*
 
+### Windows (PowerShell Script)
+
+Alternatively, Windows users can use the provided PowerShell script:
+
+1. Open PowerShell and navigate to the `scripts` directory:
+   ```powershell
+   cd scripts
+   ```
+2. Run the installer script:
+   ```powershell
+   .\install_scrypt.ps1
+   ```
+
 ## Building the Hashing Extension (Optional)
 
 If `ltc_scrypt` cannot be installed via pip, you can build the local C extension:
