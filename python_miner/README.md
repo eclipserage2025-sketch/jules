@@ -104,3 +104,13 @@ The miner will automatically start, connect to the pool, and begin the AI auto-t
 
 ---
 *Developed by Jules.*
+
+## Building the Hashing Extension (Optional)
+
+If `ltc_scrypt` cannot be installed via pip, you can build the local C extension:
+
+```bash
+cd src/c_ext
+python setup.py build_ext --inplace
+```
+This will generate a platform-specific binary (e.g., `.so` or `.pyd`) that the miner will automatically detect and use for high-performance hashing.

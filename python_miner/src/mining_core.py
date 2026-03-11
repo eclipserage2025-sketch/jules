@@ -3,6 +3,13 @@ import time
 import logging
 import hashlib
 import binascii
+import sys
+import os
+
+# Add local C extension to path if it exists
+c_ext_path = os.path.join(os.path.dirname(__file__), 'c_ext')
+if c_ext_path not in sys.path:
+    sys.path.append(c_ext_path)
 
 try:
     import pyopencl as cl
@@ -121,7 +128,6 @@ class MiningCore:
                 if HAS_LTC_SCRYPT:
                     hash_result = ltc_scrypt.getPoWHash(data)
                 else:
-                    # Fallback to hashlib scrypt (N=1024, r=1, p=1)
                     hash_result = hashlib.scrypt(data, salt=data, n=1024, r=1, p=1, dklen=32)
 
                 if int.from_bytes(hash_result, 'big') < target:
