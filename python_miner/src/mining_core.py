@@ -116,9 +116,9 @@ class MiningCore:
             target = job['target']
             job_id = job['job_id']
 
-            start_nonce = job_notifier.get_next_nonce_range(500)
+            start_nonce = job_notifier.get_next_nonce_range(2000)
 
-            for nonce in range(start_nonce, start_nonce + 500):
+            for nonce in range(start_nonce, start_nonce + 2000):
                 if not self.running or job_notifier.get_current_job_id() != job_id:
                     break
 
