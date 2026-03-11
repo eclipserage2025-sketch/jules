@@ -3,3 +3,4 @@ scikit-learn
 pyopencl
 ltc_scrypt
 requests
+pyinstaller

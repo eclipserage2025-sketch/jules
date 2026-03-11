@@ -105,6 +105,20 @@ The miner will automatically start, connect to the pool, and begin the AI auto-t
 ---
 *Developed by Jules.*
 
+### Building Standalone EXE (Windows)
+
+To create a single standalone Windows executable (.exe) that includes everything, use the build script:
+
+1. Open PowerShell and navigate to the `scripts` directory:
+   ```powershell
+   cd scripts
+   ```
+2. Run the build script:
+   ```powershell
+   .\build_exe.ps1
+   ```
+3. Find your built executable `AI_Miner_Ultimate.exe` in the `dist` folder. This executable can be run on any Windows machine without needing Python installed.
+
 ### Windows (PowerShell Script)
 
 Alternatively, Windows users can use the provided PowerShell script:
