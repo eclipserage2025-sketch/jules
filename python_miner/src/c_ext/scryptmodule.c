@@ -3,6 +3,16 @@
 #include <stdint.h>
 #include <emmintrin.h> // SSE2
 
+#ifdef _WIN32
+#include <malloc.h>
+#define ALIGNED_ALLOC(size, alignment) _aligned_malloc(size, alignment)
+#define ALIGNED_FREE(ptr) _aligned_free(ptr)
+#else
+#include <stdlib.h>
+#define ALIGNED_ALLOC(size, alignment) aligned_alloc(alignment, size)
+#define ALIGNED_FREE(ptr) free(ptr)
+#endif
+
 /*
  * High-Performance Scrypt implementation for Litecoin (N=1024, r=1, p=1)
  * Optimized with SSE2 SIMD and GIL release.
@@ -42,7 +52,7 @@ static inline void salsa20_8_sse2(__m128i B[4]) {
 
 static void scrypt_core_sse2(const uint8_t *input, uint8_t *output) {
     __m128i B[8]; // 128 bytes (2 blocks of 64 bytes)
-    __m128i *V = (__m128i *)aligned_alloc(16, 1024 * 128);
+    __m128i *V = (__m128i *)ALIGNED_ALLOC(1024 * 128, 16);
 
     // Initial load (80 bytes input padded to 128)
     uint8_t local_B[128] = {0};
@@ -86,7 +96,7 @@ static void scrypt_core_sse2(const uint8_t *input, uint8_t *output) {
     _mm_storeu_si128((__m128i *)output, B[0]);
     _mm_storeu_si128((__m128i *)(output + 16), B[1]);
 
-    free(V);
+    ALIGNED_FREE(V);
 }
 
 static PyObject *scrypt_getpowhash(PyObject *self, PyObject *args) {
