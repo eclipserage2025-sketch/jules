@@ -1,57 +1,33 @@
-# AI Monero Miner (RandomX) v1.0
+# AI Monero Miner Pro (RandomX) v2.0
 
-A brand new, from-scratch C++ miner for Monero (XMR) featuring AI-driven thread optimization.
+A high-performance, from-scratch C++ miner for Monero (XMR) featuring an ImGui dashboard and ONNX-driven AI optimization.
 
 ## Key Features
 
-- **RandomX Mining Core**: Built on the official RandomX hashing algorithm for peak CPU efficiency.
-- **AI Dynamic Threading**: An intelligent management engine that monitors real-time hashrate and adjusts thread counts to maximize performance based on hardware feedback.
-- **Hardware-Aware Profiling**: Automatically detects L3 cache size and CPU topology to ensure the 2MB-per-thread RandomX requirement is met by default.
-- **Lightweight CLI**: A robust command-line interface designed for performance and ease of monitoring.
-- **Monero Stratum Support**: Custom JSON-RPC implementation for reliable pool connectivity.
+- **Modern Minimalist GUI**: A sleek Dear ImGui dashboard with real-time hashrate graphs.
+- **ONNX AI Predictor**: Predictive hashrate forecasting using trained machine learning models.
+- **RandomX Optimized**: Built on the official RandomX algorithm with support for Large Pages and MSR tweaks.
+- **Secure Mining**: SSL/TLS support for encrypted communication with mining pools.
+- **Hardware-Aware Profiling**: Automatic CPU and L3 cache detection for optimal configuration.
 
-## Project Structure
-
-- `src/`: Core implementation files (`MiningCore`, `StratumClient`, `ThreadManager`, `SystemProfiler`).
-- `include/`: Header files defining the project architecture.
-- `scripts/`: Automation scripts for dependency management.
-- `external/`: Third-party libraries (RandomX, nlohmann/json).
-- `build/`: Compilation output directory.
-
-## Getting Started
+## Getting Started (Linux)
 
 ### 1. Build Dependencies
-The miner requires `libcurl` and `RandomX`. Use the provided script to automate the setup:
-
 ```bash
 chmod +x scripts/setup_dependencies.sh
 ./scripts/setup_dependencies.sh
 ```
 
-*Note: Ensure `cmake`, `git`, and `build-essential` are installed on your system.*
-
-### 2. Compile the Miner
-Use CMake to build the project:
-
+### 2. Compile and Run
+We provide an automated script to handle the CMake build process:
 ```bash
-mkdir -p build && cd build
-cmake ..
-make -j$(nproc)
-```
-
-### 3. Run the Miner
-Execute the binary:
-
-```bash
-./bin/ai-monero-miner
+chmod +x build.sh
+./build.sh
+./build/bin/ai-monero-miner-pro
 ```
 
 ## AI Logic: Dynamic Threading
-
-The miner uses a "Hill Climbing" AI heuristic to find the optimal thread count.
-1. **Initial Phase**: It profiles the CPU L3 cache and starts with 1 thread per 2MB of cache.
-2. **Monitoring Phase**: It observes the hashrate over a sliding window.
-3. **Optimization Phase**: If the hashrate improves or stays stable, it may test an additional thread. If a significant drop is detected (due to cache thrashing or thermal throttling), it automatically scales back.
+The miner uses a combination of an ONNX-based predictive model and a real-time hill-climbing heuristic to find the hardware's optimal thread count, balancing performance and thermal stability.
 
 ---
 *Developed by Jules.*
