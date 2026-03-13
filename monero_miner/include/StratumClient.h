@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <vector>
-// #include <curl/curl.h>
+#include <curl/curl.h>
 #include "../external/json.hpp"
 
 using json = nlohmann::json;
@@ -30,7 +30,7 @@ private:
     std::string poolUrl;
     std::string walletAddress;
     std::function<void(const JobData&)> jobCallback;
-    void* curl; // Use void* instead of CURL*
+    CURL* curl;
 };
 
 #endif
